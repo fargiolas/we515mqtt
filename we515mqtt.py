@@ -10,7 +10,7 @@ from pymodbus.client.sync import ModbusTcpClient
 import paho.mqtt.client as mqtt
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('orno515')
+logger = logging.getLogger('we515mqtt')
 
 def word2tuple(w):
    return (w >> 8) & 0xFF, w & 0xFF
@@ -72,11 +72,11 @@ class WE515Manager(object):
         self.exit_code = 0
         self.delay = 1
 
-    def _set_multirate_limits(mbus, addr, hstart, mstart, hend, mend):
-        mbus.write_registers(0x8100, tuple2word(hstart, mstart), unit=addr)
-        mbus.write_registers(0x8101, tuple2word(0, 1), unit=addr)
-        mbus.write_registers(0x8102, tuple2word(hend, mend), unit=addr)
-        mbus.write_registers(0x8103, tuple2word(0, 2), unit=addr)
+    def set_multirate_limits(self, hstart, mstart, hend, mend):
+        self.mbus.write_registers(0x8100, tuple2word(hstart, mstart), unit=self.mbus_addr)
+        self.mbus.write_registers(0x8101, tuple2word(0, 1), unit=self.mbus_addr)
+        self.mbus.write_registers(0x8102, tuple2word(hend, mend), unit=self.mbus_addr)
+        self.mbus.write_registers(0x8103, tuple2word(0, 2), unit=self.mbus_addr)
 
     def _get_device_time(self):
         rr = self.mbus.read_holding_registers(0x8120, 3, unit=self.mbus_addr)
@@ -110,32 +110,34 @@ class WE515Manager(object):
 
     def _read_data(self):
         freq = self._read_byte(0x130, 0.01)
-        logger.debug(f'freq = {freq} Hz')
+        logger.info(f'freq = {freq} Hz')
         voltage = self._read_byte(0x131, 0.01)
-        logger.debug(f'voltage = {voltage} V')
+        logger.info(f'voltage = {voltage} V')
         current = self._read_word(0x139, 0.001)
-        logger.debug(f'current = {current} A')
+        logger.info(f'current = {current} A')
         active_power = self._read_word(0x140, 1.)
-        logger.debug(f'active power = {active_power} W')
+        logger.info(f'active power = {active_power} W')
         reactive_power = self._read_word(0x148, 0.001)
-        logger.debug(f'reactive power = {reactive_power:.3f} kvar')
+        logger.info(f'reactive power = {reactive_power:.3f} kvar')
         apparent_power = self._read_word(0x150, 0.001)
-        logger.debug(f'apparent power = {apparent_power:.3f} kva')
+        logger.info(f'apparent power = {apparent_power:.3f} kva')
         power_factor = self._read_byte(0x158, 0.001)
 
         total_active_energy = self._read_word(0xA000, 0.01)
-        logger.debug(f'total active energy = {total_active_energy:.3f} kWh')
+        logger.info(f'total active energy = {total_active_energy:.3f} kWh')
         rate1_active_energy = self._read_word(0xA002, 0.01)
-        logger.debug(f'  F1 = {rate1_active_energy:.3f} kWh')
+        logger.info(f'  F1 = {rate1_active_energy:.3f} kWh')
         rate2_active_energy = self._read_word(0xA004, 0.01)
-        logger.debug(f'  F23 = {rate2_active_energy:.3f} kWh')
+        logger.info(f'  F23 = {rate2_active_energy:.3f} kWh')
 
         total_reactive_energy = self._read_word(0xA000, 0.01)
-        logger.debug(f'total reactive energy = {total_reactive_energy:.3f} kWh')
+        logger.info(f'total reactive energy = {total_reactive_energy:.3f} kWh')
         rate1_reactive_energy = self._read_word(0xA002, 0.01)
-        logger.debug(f'  F1 = {rate1_reactive_energy:.3f} kWh')
+        logger.info(f'  F1 = {rate1_reactive_energy:.3f} kWh')
         rate2_reactive_energy = self._read_word(0xA004, 0.01)
-        logger.debug(f'  F23 = {rate2_reactive_energy:.3f} kWh')
+        logger.info(f'  F23 = {rate2_reactive_energy:.3f} kWh')
+
+        logger.info('--')
 
         record = { 'freq': freq,
                    'voltage': voltage,
@@ -216,4 +218,6 @@ if __name__ == '__main__':
     orno = WE515Manager('192.168.1.11', 8899, 0x01,
                         'localhost', 1883,
                         '/dommu/energy/uno')
+
+    # orno.set_multirate_limits(8, 0, 19, 0)
     orno.run()
