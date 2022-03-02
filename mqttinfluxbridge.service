@@ -1,0 +1,16 @@
+[Unit]
+Description=MQTT to InfluxDB Bridge Service
+After=multi-user.target
+
+[Service]
+User=pi
+Type=idle
+SyslogIdentifier=mqttinfluxbridge
+Environment="PYTHONPATH=/home/pi/we515mqtt"
+ExecStart=/usr/bin/python3 -u /home/pi/we515mqtt/mqttinfluxbridge.py
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,16 @@
+[Unit]
+Description=WE515 to MQTT Service
+After=multi-user.target
+
+[Service]
+User=pi
+Type=idle
+SyslogIdentifier=we515mqtt
+Environment="PYTHONPATH=/home/pi/we515mqtt"
+ExecStart=/usr/bin/python3 -u /home/pi/we515mqtt/we515mqtt.py
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
+
