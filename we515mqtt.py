@@ -122,6 +122,7 @@ class WE515Manager(object):
         apparent_power = self._read_word(0x150, 0.001)
         logger.debug(f'apparent power = {apparent_power:.3f} kva')
         power_factor = self._read_byte(0x158, 0.001)
+        logger.debug(f'power factor = {power_factor:.3f}')
 
         total_active_energy = self._read_word(0xA000, 0.01)
         logger.debug(f'total active energy = {total_active_energy:.3f} kWh')
@@ -145,6 +146,7 @@ class WE515Manager(object):
                    'active_power': active_power,
                    'reactive_power': reactive_power,
                    'apparent_power': apparent_power,
+                   'power_factor': power_factor,
                    'total_active_energy': total_active_energy,
                    'rate1_active_energy': rate1_active_energy,
                    'rate2_active_energy': rate2_active_energy,
