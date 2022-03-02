@@ -110,34 +110,34 @@ class WE515Manager(object):
 
     def _read_data(self):
         freq = self._read_byte(0x130, 0.01)
-        logger.info(f'freq = {freq} Hz')
+        logger.debug(f'freq = {freq} Hz')
         voltage = self._read_byte(0x131, 0.01)
-        logger.info(f'voltage = {voltage} V')
+        logger.debug(f'voltage = {voltage} V')
         current = self._read_word(0x139, 0.001)
-        logger.info(f'current = {current} A')
+        logger.debug(f'current = {current} A')
         active_power = self._read_word(0x140, 1.)
-        logger.info(f'active power = {active_power} W')
+        logger.debug(f'active power = {active_power} W')
         reactive_power = self._read_word(0x148, 0.001)
-        logger.info(f'reactive power = {reactive_power:.3f} kvar')
+        logger.debug(f'reactive power = {reactive_power:.3f} kvar')
         apparent_power = self._read_word(0x150, 0.001)
-        logger.info(f'apparent power = {apparent_power:.3f} kva')
+        logger.debug(f'apparent power = {apparent_power:.3f} kva')
         power_factor = self._read_byte(0x158, 0.001)
 
         total_active_energy = self._read_word(0xA000, 0.01)
-        logger.info(f'total active energy = {total_active_energy:.3f} kWh')
+        logger.debug(f'total active energy = {total_active_energy:.3f} kWh')
         rate1_active_energy = self._read_word(0xA002, 0.01)
-        logger.info(f'  F1 = {rate1_active_energy:.3f} kWh')
+        logger.debug(f'  F1 = {rate1_active_energy:.3f} kWh')
         rate2_active_energy = self._read_word(0xA004, 0.01)
-        logger.info(f'  F23 = {rate2_active_energy:.3f} kWh')
+        logger.debug(f'  F23 = {rate2_active_energy:.3f} kWh')
 
         total_reactive_energy = self._read_word(0xA000, 0.01)
-        logger.info(f'total reactive energy = {total_reactive_energy:.3f} kWh')
+        logger.debug(f'total reactive energy = {total_reactive_energy:.3f} kWh')
         rate1_reactive_energy = self._read_word(0xA002, 0.01)
-        logger.info(f'  F1 = {rate1_reactive_energy:.3f} kWh')
+        logger.debug(f'  F1 = {rate1_reactive_energy:.3f} kWh')
         rate2_reactive_energy = self._read_word(0xA004, 0.01)
-        logger.info(f'  F23 = {rate2_reactive_energy:.3f} kWh')
+        logger.debug(f'  F23 = {rate2_reactive_energy:.3f} kWh')
 
-        logger.info('--')
+        logger.debug('--')
 
         record = { 'freq': freq,
                    'voltage': voltage,
@@ -147,10 +147,10 @@ class WE515Manager(object):
                    'apparent_power': apparent_power,
                    'total_active_energy': total_active_energy,
                    'rate1_active_energy': rate1_active_energy,
-                   'rate2_active_energy': rate1_active_energy,
+                   'rate2_active_energy': rate2_active_energy,
                    'total_reactive_energy': total_reactive_energy,
                    'rate1_reactive_energy': rate1_reactive_energy,
-                   'rate2_reactive_energy': rate1_reactive_energy }
+                   'rate2_reactive_energy': rate2_reactive_energy }
 
         return record
 
@@ -169,7 +169,7 @@ class WE515Manager(object):
             self._set_device_time(datetime.now())
             logger.info('updated device time: {}'.format(get_device_time()))
 
-        logger.info('mqtt: connecting async<hronously to {}:{}'.format(self.mqtt_host, self.mqtt_port))
+        logger.info('mqtt: connecting asynchronously to {}:{}'.format(self.mqtt_host, self.mqtt_port))
         self.mqtt.connect_async(self.mqtt_host, self.mqtt_port)
         logger.info('mqtt: starting network thread')
         self.mqtt.loop_start()
@@ -217,7 +217,7 @@ class WE515Manager(object):
 if __name__ == '__main__':
     orno = WE515Manager('192.168.1.11', 8899, 0x01,
                         'localhost', 1883,
-                        '/dommu/energy/uno')
+                        '/dommu/common/energy')
 
     # orno.set_multirate_limits(8, 0, 19, 0)
     orno.run()
