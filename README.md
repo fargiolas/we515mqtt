@@ -2,13 +2,15 @@
 
 A couple of services to read data from a OR-WE-515 Energy meter and broadcast it to my local MQTT broker and to Grafana for visualization.
 
+Nothing too refined and mainly meant for personal use.
+
 ### `we515mqtt.py`
 The main service, reads data WE515 from Modbus RTU over TCP and publish it to a MQTT broker.
 
 To interact with the device over wifi I'm using a Protoss PW11-H.
 
 ### `mqttinfluxbridge.py`
-Subscribes to MQTT data and write it to a InfluxDB database
+Subscribes to MQTT data and writes it to a InfluxDB database
 
 ## sample Grafana dashboard from latest measurements
 <img width="800" alt="grafana-dashboard" src="https://user-images.githubusercontent.com/133750/156337800-6c006f9c-a9be-4911-bdcc-291f927b8ccc.png">
