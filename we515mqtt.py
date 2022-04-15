@@ -164,7 +164,7 @@ class WE515Manager(object):
         delta = abs((local_time - remote_time).total_seconds())
 
         logger.info('device time: {}'.format(remote_time))
-        logger.info('docal time:  {}'.format(local_time))
+        logger.info('local time:  {}'.format(local_time))
         if (delta > 10):
             logger.warning('local and device time differ!')
             logger.info('syncing device time')
