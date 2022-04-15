@@ -78,6 +78,10 @@ class WE515Manager(object):
         self.mbus.write_registers(0x8102, tuple2word(hend, mend), unit=self.mbus_addr)
         self.mbus.write_registers(0x8103, tuple2word(0, 2), unit=self.mbus_addr)
 
+        # reset all the other time periods and rates
+        for i in range(12):
+           self.mbus.write_registers(0x8104+i, tuple2word(0, 0), unit=self.mbus_addr)
+
     def _get_device_time(self):
         rr = self.mbus.read_holding_registers(0x8120, 3, unit=self.mbus_addr)
         y, m = word2tuple(rr.registers[0])
