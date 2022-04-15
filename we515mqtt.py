@@ -131,11 +131,11 @@ class WE515Manager(object):
         rate2_active_energy = self._read_word(0xA004, 0.01)
         logger.debug(f'  F23 = {rate2_active_energy:.3f} kWh')
 
-        total_reactive_energy = self._read_word(0xA000, 0.01)
+        total_reactive_energy = self._read_word(0xA01E, 0.01)
         logger.debug(f'total reactive energy = {total_reactive_energy:.3f} kWh')
-        rate1_reactive_energy = self._read_word(0xA002, 0.01)
+        rate1_reactive_energy = self._read_word(0xA020, 0.01)
         logger.debug(f'  F1 = {rate1_reactive_energy:.3f} kWh')
-        rate2_reactive_energy = self._read_word(0xA004, 0.01)
+        rate2_reactive_energy = self._read_word(0xA022, 0.01)
         logger.debug(f'  F23 = {rate2_reactive_energy:.3f} kWh')
 
         logger.debug('--')
