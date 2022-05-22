@@ -22,7 +22,11 @@ INFLUXDB_DATABASE = 'home_db'
 
 MQTT_ADDRESS = 'localhost'
 MQTT_PORT = 1883
-MQTT_TOPIC = '/dommu/#'
+MQTT_TOPIC = [('/dommu/+/energy', 2),
+              ('/dommu/+/temperature', 2),
+              ('/dommu/+/humidity', 2),
+              ('/dommu/+/pressure', 2),
+              ('/dommu/common/lavatrice/tele/SENSOR', 2)]
 MQTT_CLIENT_ID = 'MQTTInfluxDBBridge'
 
 logging.basicConfig(level=logging.INFO)
@@ -53,21 +57,33 @@ class MQTTInfluxBridge(object):
         self._parse_mqtt_message(msg.topic, msg.payload.decode('utf-8'))
 
     def _parse_mqtt_message(self, topic, payload):
-        match = re.match('/(\w+)/(\w+)/(\w+)', topic)
+        match = re.match('/(\w+)/(\w+)/(\w+).*', topic)
 
         if match:
             _, location, measurement = match.groups()
-            payload_dict = json.loads(payload)
-            timestamp = payload_dict.pop('timestamp')
-            timestamp = datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat()
+            if (measurement == "energy"):
+                payload_dict = json.loads(payload)
+                timestamp = payload_dict.pop('timestamp')
+                timestamp = datetime.fromtimestamp(timestamp, tz=timezone.utc).isoformat()
+                fields = payload_dict
+            elif (measurement == "lavatrice"):
+                timestamp = datetime.now(tz=timezone.utc).isoformat()
+                payload_dict = json.loads(payload)['ENERGY']
+                fields = payload_dict
+            else:
+                timestamp = datetime.now(tz=timezone.utc).isoformat()
+                fields = { 'value': float(payload) }
+
             points  = [{
                 'measurement': measurement,
                 'tags': {
                     'location': location
                 },
                 'time': timestamp,
-                'fields': payload_dict
+                'fields': fields
                 }]
+
+            # logger.info(f'writing points to influxdb: {points}')
 
             self.influx.write_points(points)
 

@@ -90,8 +90,8 @@ class WE515Manager(object):
 
         return datetime(2000 + y, m, d, H, M, S)
 
-    def _set_device_time(self):
-        y, m, d, H, M, S, _, _, _ = time.timetuple()
+    def _set_device_time(self, t):
+        y, m, d, H, M, S, _, _, _ = t.timetuple()
         y = y - 2000
         self.mbus.write_registers(0x8120, tuple2word(y, m), unit=self.mbus_addr)
         self.mbus.write_registers(0x8121, tuple2word(d, H), unit=self.mbus_addr)
@@ -173,7 +173,7 @@ class WE515Manager(object):
             logger.warning('local and device time differ!')
             logger.info('syncing device time')
             self._set_device_time(datetime.now())
-            logger.info('updated device time: {}'.format(get_device_time()))
+            logger.info('updated device time: {}'.format(self._get_device_time()))
 
         logger.info('mqtt: connecting asynchronously to {}:{}'.format(self.mqtt_host, self.mqtt_port))
         self.mqtt.connect_async(self.mqtt_host, self.mqtt_port)
