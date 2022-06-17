@@ -18,6 +18,9 @@ def word2tuple(w):
 def tuple2word(high, low):
    return (high << 8) | low
 
+def tuple2long(high, low):
+   return (high << 16) | low
+
 # h, l = np.random.randint(0, 255, size=2)
 # assert word2tuple(tuple2word(h, l)) == (h, l)
 
@@ -105,6 +108,9 @@ class WE515Manager(object):
         rr = self.mbus.read_holding_registers(reg, 2, unit=self.mbus_addr)
         return tuple2word(*rr.registers) * scale
 
+    def _read_long(self, reg, scale):
+        rr = self.mbus.read_holding_registers(reg, 2, unit=self.mbus_addr)
+        return tuple2long(*rr.registers) * scale
 
     def _on_connect(self, client, userdata, flags, rc):
         if (rc != 0):
@@ -128,18 +134,18 @@ class WE515Manager(object):
         power_factor = self._read_byte(0x158, 0.001)
         logger.debug(f'power factor = {power_factor:.3f}')
 
-        total_active_energy = self._read_word(0xA000, 0.01)
+        total_active_energy = self._read_long(0xA000, 0.01)
         logger.debug(f'total active energy = {total_active_energy:.3f} kWh')
-        rate1_active_energy = self._read_word(0xA002, 0.01)
+        rate1_active_energy = self._read_long(0xA002, 0.01)
         logger.debug(f'  F1 = {rate1_active_energy:.3f} kWh')
-        rate2_active_energy = self._read_word(0xA004, 0.01)
+        rate2_active_energy = self._read_long(0xA004, 0.01)
         logger.debug(f'  F23 = {rate2_active_energy:.3f} kWh')
 
-        total_reactive_energy = self._read_word(0xA01E, 0.01)
+        total_reactive_energy = self._read_long(0xA01E, 0.01)
         logger.debug(f'total reactive energy = {total_reactive_energy:.3f} kWh')
-        rate1_reactive_energy = self._read_word(0xA020, 0.01)
+        rate1_reactive_energy = self._read_long(0xA020, 0.01)
         logger.debug(f'  F1 = {rate1_reactive_energy:.3f} kWh')
-        rate2_reactive_energy = self._read_word(0xA022, 0.01)
+        rate2_reactive_energy = self._read_long(0xA022, 0.01)
         logger.debug(f'  F23 = {rate2_reactive_energy:.3f} kWh')
 
         logger.debug('--')
