@@ -6,7 +6,8 @@ import logging
 import time
 from datetime import datetime
 import json
-from pymodbus.client.sync import ModbusTcpClient
+from pymodbus.client import ModbusTcpClient
+from pymodbus import FramerType
 import paho.mqtt.client as mqtt
 
 logging.basicConfig(level=logging.INFO)
@@ -64,7 +65,7 @@ class WE515Manager(object):
         self.mbus_port = mbus_port
         self.mbus_addr = mbus_addr
 
-        self.mbus = ModbusTcpClient(self.mbus_host, self.mbus_port)
+        self.mbus = ModbusTcpClient(self.mbus_host, port=self.mbus_port, framer=FramerType.SOCKET)
 
         self.mqtt_host = mqtt_host
         self.mqtt_port = mqtt_port
@@ -76,17 +77,17 @@ class WE515Manager(object):
         self.delay = 1
 
     def set_multirate_limits(self, hstart, mstart, hend, mend):
-        self.mbus.write_registers(0x8100, tuple2word(hstart, mstart), unit=self.mbus_addr)
-        self.mbus.write_registers(0x8101, tuple2word(0, 1), unit=self.mbus_addr)
-        self.mbus.write_registers(0x8102, tuple2word(hend, mend), unit=self.mbus_addr)
-        self.mbus.write_registers(0x8103, tuple2word(0, 2), unit=self.mbus_addr)
+        self.mbus.write_registers(0x8100, tuple2word(hstart, mstart), slave=self.mbus_addr)
+        self.mbus.write_registers(0x8101, tuple2word(0, 1), slave=self.mbus_addr)
+        self.mbus.write_registers(0x8102, tuple2word(hend, mend), slave=self.mbus_addr)
+        self.mbus.write_registers(0x8103, tuple2word(0, 2), slave=self.mbus_addr)
 
         # reset all the other time periods and rates
         for i in range(12):
-           self.mbus.write_registers(0x8104+i, tuple2word(0, 0), unit=self.mbus_addr)
+           self.mbus.write_registers(0x8104+i, tuple2word(0, 0), slave=self.mbus_addr)
 
     def _get_device_time(self):
-        rr = self.mbus.read_holding_registers(0x8120, 3, unit=self.mbus_addr)
+        rr = self.mbus.read_holding_registers(0x8120, 3, slave=self.mbus_addr)
         y, m = word2tuple(rr.registers[0])
         d, H = word2tuple(rr.registers[1])
         M, S = word2tuple(rr.registers[2])
@@ -96,20 +97,20 @@ class WE515Manager(object):
     def _set_device_time(self, t):
         y, m, d, H, M, S, _, _, _ = t.timetuple()
         y = y - 2000
-        self.mbus.write_registers(0x8120, tuple2word(y, m), unit=self.mbus_addr)
-        self.mbus.write_registers(0x8121, tuple2word(d, H), unit=self.mbus_addr)
-        self.mbus.write_registers(0x8122, tuple2word(M, S), unit=self.mbus_addr)
+        self.mbus.write_registers(0x8120, tuple2word(y, m), slave=self.mbus_addr)
+        self.mbus.write_registers(0x8121, tuple2word(d, H), slave=self.mbus_addr)
+        self.mbus.write_registers(0x8122, tuple2word(M, S), slave=self.mbus_addr)
 
     def _read_byte(self, reg, scale):
-        rr = self.mbus.read_holding_registers(reg, 1, unit=self.mbus_addr)
+        rr = self.mbus.read_holding_registers(reg, 1, slave=self.mbus_addr)
         return rr.registers[0] * scale
 
     def _read_word(self, reg, scale):
-        rr = self.mbus.read_holding_registers(reg, 2, unit=self.mbus_addr)
+        rr = self.mbus.read_holding_registers(reg, 2, slave=self.mbus_addr)
         return tuple2word(*rr.registers) * scale
 
     def _read_long(self, reg, scale):
-        rr = self.mbus.read_holding_registers(reg, 2, unit=self.mbus_addr)
+        rr = self.mbus.read_holding_registers(reg, 2, slave=self.mbus_addr)
         return tuple2long(*rr.registers) * scale
 
     def _on_connect(self, client, userdata, flags, rc):

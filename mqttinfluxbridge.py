@@ -48,7 +48,7 @@ class MQTTInfluxBridge(object):
         logger.info(f'opening {INFLUXDB_DATABASE} database')
         self.influx.switch_database(INFLUXDB_DATABASE)
 
-    def _on_connect(self, client, userdata, flags, rc):
+    def _on_connect(self, client, userdata, flags, reason_code, properties):
         logger.info(f'connected to mqtt broker {MQTT_ADDRESS}:{MQTT_PORT}')
         logger.info(f'subscribing to topic: {MQTT_TOPIC}')
         self.mqtt.subscribe(MQTT_TOPIC)
@@ -88,14 +88,13 @@ class MQTTInfluxBridge(object):
             self.influx.write_points(points)
 
     def run(self):
-        self.mqtt = mqtt.Client(MQTT_CLIENT_ID)
         logger.info(f'connecting to influxdb server {INFLUXDB_ADDRESS}:{INFLUXDB_PORT}')
         self.influx = InfluxDBClient(INFLUXDB_ADDRESS, INFLUXDB_PORT,
                                      INFLUXDB_USER, INFLUXDB_PASSWORD, None)
 
         self._init_influxdb_database()
 
-        self.mqtt = mqtt.Client(MQTT_CLIENT_ID)
+        self.mqtt = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=MQTT_CLIENT_ID)
         self.mqtt.on_connect = self._on_connect
         self.mqtt.on_message = self._on_message
 
